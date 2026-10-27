@@ -1,0 +1,15 @@
+[package]
+name = "networking_layer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+quinn = "0.11.12"
+rand = "0.10.3"
+sha2 = "0.11.1"
+sha256 = "1.6.0"
+tokio = { version = "1.54.1", features = ["full"] }
+tokio-tungstenite = "0.30.0"
+# Explicit, lightweight trait buckets to stabilize compilation
+futures-core = "0.3.34"
+futures-sink = "0.3.34"
