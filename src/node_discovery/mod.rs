@@ -113,7 +113,8 @@ impl KademliaRoutingTable {
         true
     }
 
-
+    /// LEGACY INDEX COMPATIBILITY: Kept intact to support legacy lookup systems 
+    /// mapping byte profiles directly to basic ranges.
     pub fn calculate_xor_index(&self, peer_id: &PeerId) -> usize {
         (peer_id[0] ^ self.local_id[0]) as usize
     }
