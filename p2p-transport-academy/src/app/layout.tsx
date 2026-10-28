@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "P2P Networking & Transport Academy",
-  description: "Advanced interactive testing bench for blockchain engineers — transport protocols, node discovery, and Kademlia DHT routing.",
+  title: 'PeerLab — See what your network is doing',
+  description: 'An interactive academy for understanding peer-to-peer networking through real-world examples.',
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

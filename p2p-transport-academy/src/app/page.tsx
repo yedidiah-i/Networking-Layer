@@ -1,133 +1,30 @@
-// src/app/page.tsx
+import TransportSimulator from '@/components/TransportSimulator'
+import NodeBootstrapper from '@/components/NodeBootstrapper'
+import MdnsDiscovery from '@/components/MdnsDiscovery'
+import KademliaDhtVisualizer from '@/components/KademliaDhtVisualizer'
+import AuthPanel from '@/components/AuthPanel'
+import { ArrowRight, BookOpen, CheckCircle2, CircleDot, Network, Play, Route, Sparkles, Zap } from 'lucide-react'
 
-import TransportSimulator from '@/components/TransportSimulator';
-import NodeBootstrapper from '@/components/NodeBootstrapper';
-import MdnsDiscovery from '@/components/MdnsDiscovery';
-import KademliaDhtVisualizer from '@/components/KademliaDhtVisualizer';
-import { ShieldAlert, Terminal } from 'lucide-react';
+const lessons = [
+  ['01', 'The message journey', 'How a request leaves your laptop, finds a peer, and returns — without magic.', 'A courier network'],
+  ['02', 'Finding nearby peers', 'Why local discovery exists and how mDNS lets devices introduce themselves.', 'A neighborhood meetup'],
+  ['03', 'Routing at scale', 'How Kademlia uses XOR distance to find one peer among thousands.', 'A library index'],
+  ['04', 'Transport choices', 'When TCP, QUIC, or WebSockets make sense for a real product.', 'Different roads'],
+]
 
-function ModuleHeader({
-  index,
-  kicker,
-  title,
-  description,
-}: {
-  index: string;
-  kicker: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="mb-8">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-2.5 py-1 rounded-full font-mono font-semibold tracking-wide">
-          {index} · {kicker}
-        </span>
-      </div>
-      <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-100">{title}</h2>
-      <p className="text-slate-400 mt-2 text-sm max-w-3xl leading-relaxed">{description}</p>
-    </div>
-  );
-}
+function Pill({ children }: { children: React.ReactNode }) { return <span className="pill">{children}</span> }
+function SectionIntro({ number, label, title, copy }: { number: string; label: string; title: string; copy: string }) { return <div className="section-intro"><div className="eyebrow"><span>{number}</span>{label}</div><h2>{title}</h2><p>{copy}</p></div> }
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Engineering Header section */}
-        <header className="border-b border-slate-800 pb-8 mb-12">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-2.5 py-1 rounded-full font-mono font-semibold tracking-wide">
-              Layer 4 Architecture
-            </span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-slate-100 via-slate-300 to-slate-500 bg-clip-text text-transparent">
-            P2P Networking & Transport Academy
-          </h1>
-          <p className="text-slate-400 mt-3 text-base max-w-3xl leading-relaxed">
-            An advanced interactive testing bench designed for blockchain engineers to explore high-performance transport structures, security-centric hole punching routines, and zero-allocation socket streams.
-          </p>
-        </header>
-
-        {/* Section 1: Core Dashboard Element */}
-        <section className="mb-16">
-          <TransportSimulator />
-        </section>
-
-        {/* Section 2: Node Bootstrapping Lifecycle */}
-        <section className="mb-16 border-t border-slate-800 pt-12">
-          <ModuleHeader
-            index="Core Module 01"
-            kicker="Bootstrapping"
-            title="Local Node Lifecycle Terminal"
-            description="Trace a node from a cold process spawn through runtime/identity initialization, link-local discovery, and finally into the global Kademlia routing table — one observable state transition at a time."
-          />
-          <NodeBootstrapper />
-        </section>
-
-        {/* Section 3: mDNS Local Discovery */}
-        <section className="mb-16 border-t border-slate-800 pt-12">
-          <ModuleHeader
-            index="Core Module 02"
-            kicker="Discovery"
-            title="mDNS Multicast Discovery Sweep"
-            description="Watch the node broadcast a PTR query onto 224.0.0.251:5353, capture link-local RESPONSE packets in real time, and resolve each host's PeerId hex slice, LAN address, and advertised service records."
-          />
-          <MdnsDiscovery />
-        </section>
-
-        {/* Section 4: Kademlia DHT Distance Visualizer */}
-        <section className="mb-16 border-t border-slate-800 pt-12">
-          <ModuleHeader
-            index="Core Module 03"
-            kicker="Routing"
-            title="Kademlia XOR Distance Visualizer"
-            description="Enter any 256-bit target key to compute the local_id ⊕ target_id metric, highlight the closest k-nodes, inspect individual XOR buckets, and monitor routing-table health, live pings, and PoW Sybil-resistance."
-          />
-          <KademliaDhtVisualizer />
-        </section>
-
-        {/* Section 5: Architectural Deep-Dive Guides */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-slate-800 pt-12">
-          <div className="bg-slate-900/50 border border-slate-800/60 rounded-xl p-6">
-            <h3 className="text-lg font-bold flex items-center gap-2 text-slate-200 mb-3">
-              <Terminal className="w-5 h-5 text-emerald-400" /> Rust Code Reference Framework
-            </h3>
-            <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Our backend transport stack abstracts multiplexed routing variants natively. This matches our strict guidelines for 
-              <strong> Speed</strong>, <strong>Security</strong>, <strong>Safety</strong>, and <strong>Simplicity</strong>.
-            </p>
-            <pre className="bg-slate-950 text-slate-400 p-4 rounded-lg text-xs font-mono border border-slate-800/80 overflow-x-auto">
-{`pub enum RawWireStream {
-    Tcp(TcpStream),
-    Quic { send: SendStream, recv: RecvStream },
-    WebSocket { stream: WebSocketStream<...>, buffer: Vec<u8> }
-}`}</pre>
-          </div>
-
-          <div className="bg-slate-900/50 border border-slate-800/60 rounded-xl p-6">
-            <h3 className="text-lg font-bold flex items-center gap-2 text-slate-200 mb-3">
-              <ShieldAlert className="w-5 h-5 text-amber-400" /> Security Safeguard Metrics
-            </h3>
-            <ul className="text-sm text-slate-400 space-y-3">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div><strong>Transaction Binding Matches:</strong> Every STUN packet validation maps high-entropy 12-byte IDs to eliminate data injection risks entirely.</div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div><strong>Handshake Enforcements:</strong> Direct UDP connections require mutual cryptographic validation checks before session tracking cache updates execute.</div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <div><strong>Sybil Admission Gate:</strong> DHT contact insertion demands a 2<sup>16</sup> leading-zero-bit identity proof, throttling mass key generation.</div>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-      </div>
-    </main>
-  );
+ return <main className="app-shell">
+  <nav className="top-nav"><a className="logo" href="#top"><span className="logo-icon"><Network /></span><span>Peer<span>Lab</span></span></a><div className="nav-links"><a href="#lab">Interactive lab</a><a href="#learn">Learn</a><a href="#reference">Reference</a></div><a className="nav-login" href="#account">Sign in <ArrowRight /></a></nav>
+  <section className="hero" id="top"><div className="hero-copy"><Pill><Sparkles /> A clearer way to learn networks</Pill><h1>See what your<br /><em>network</em> is doing.</h1><p>PeerLab turns the invisible parts of peer-to-peer networking into something you can watch, touch, and understand — one real-world idea at a time.</p><div className="hero-actions"><a className="primary-button" href="#lab">Open the lab <Play /></a><a className="text-link" href="#learn">Start with the basics <ArrowRight /></a></div><div className="trust-row"><span><CheckCircle2 /> No setup required</span><span><CheckCircle2 /> Learn by doing</span></div></div><div className="hero-visual"><div className="orb orb-one"/><div className="orb orb-two"/><div className="signal-card"><div className="signal-top"><span className="live-dot"/> LIVE NETWORK TRACE <span>•••</span></div><div className="signal-line"><span className="node node-a">YOU</span><span className="line-fill"/><span className="node node-b">PEER</span></div><div className="signal-status"><strong>Handshake complete</strong><span>24 ms · encrypted</span></div></div><div className="floating-note"><Route /> Kademlia route<br /><strong>3 hops to target</strong></div></div></section>
+  <section className="learning-path" id="learn"><div className="path-heading"><div><div className="eyebrow"><span>START HERE</span></div><h2>A path from curious<br />to confident.</h2></div><p>Networking is easier when you can connect the diagram to something you already understand. Each lesson pairs a system concept with a familiar mental model.</p></div><div className="lesson-grid">{lessons.map(([num, title, copy, analogy], i) => <article className={`lesson-card ${i === 0 ? 'featured' : ''}`} key={num}><div className="lesson-num">{num}</div><div className="lesson-icon">{i === 0 ? <Network /> : i === 1 ? <CircleDot /> : i === 2 ? <Route /> : <Zap />}</div><h3>{title}</h3><p>{copy}</p><div className="analogy"><BookOpen /> Think of it like <strong>{analogy}</strong></div><a href="#lab">Explore lesson <ArrowRight /></a></article>)}</div></section>
+  <section className="lab-section" id="lab"><SectionIntro number="01" label="WATCH IT HAPPEN" title="The interactive lab" copy="Change one variable, then see how the system responds. These are the same building blocks used in real P2P systems — just made observable."/><div className="lab-grid"><div className="lab-main"><TransportSimulator /></div><aside className="lab-aside"><div className="aside-label">YOUR TOOLKIT</div><div className="tool-item"><span className="tool-icon"><Network /></span><div><strong>Transport simulator</strong><p>Compare TCP, QUIC & WebSocket</p></div><span className="active-tag">OPEN</span></div><div className="tool-item"><span className="tool-icon"><CircleDot /></span><div><strong>Node lifecycle</strong><p>Follow a node from boot to ready</p></div><span className="tool-lock">NEXT</span></div><div className="tool-item"><span className="tool-icon"><Route /></span><div><strong>Routing visualizer</strong><p>See how peers find each other</p></div><span className="tool-lock">NEXT</span></div></aside></div></section>
+  <section className="deep-section"><SectionIntro number="02" label="GO DEEPER" title="Make the invisible visible" copy="Now that you have the mental model, inspect the actual mechanics. Nothing is simulated behind a black box — every state change is labeled."/><div className="deep-grid"><div className="deep-card"><div className="deep-card-head"><span className="deep-icon"><CircleDot /></span><span className="card-status">NODE LIFECYCLE</span></div><h3>From boot to connected</h3><p>See identity, discovery, and routing happen in sequence.</p><NodeBootstrapper /></div><div className="deep-card"><div className="deep-card-head"><span className="deep-icon"><Network /></span><span className="card-status">LOCAL DISCOVERY</span></div><h3>Who is nearby?</h3><p>Watch mDNS turn a local network into a room full of introductions.</p><MdnsDiscovery /></div></div></section>
+  <section className="route-section"><SectionIntro number="03" label="ROUTING" title="The map behind the map" copy="Kademlia is the idea that lets decentralized networks scale. Try a target, inspect the distance, and see why the closest peer wins."/><KademliaDhtVisualizer /></section>
+  <section className="reference-section" id="reference"><div><div className="eyebrow"><span>REAL-WORLD REFERENCE</span></div><h2>Build the right intuition.</h2><p>Every technical detail in PeerLab is anchored to a concept you already know: roads carry traffic, directories help you find people, and handshakes build trust.</p></div><div className="reference-list"><div><span>01</span><strong>Connection</strong><p>A transport is the road your data travels on.</p></div><div><span>02</span><strong>Discovery</strong><p>Peers need a way to introduce themselves.</p></div><div><span>03</span><strong>Routing</strong><p>A distributed index makes distance useful.</p></div></div></section>
+  <section className="account-section" id="account"><div className="account-copy"><Pill><Sparkles /> Your workspace</Pill><h2>Keep your experiments<br />in one place.</h2><p>Sign in to save your progress and come back when you are ready for the next layer.</p></div><AuthPanel /></section>
+  <footer><a className="logo" href="#top"><span className="logo-icon"><Network /></span><span>Peer<span>Lab</span></span></a><span>Understand the network beneath the network.</span><span>Built for curious engineers.</span></footer>
+ </main>
 }
