@@ -14,17 +14,12 @@ import {
   Terminal,
 } from "lucide-react";
 
-/* ------------------------------------------------------------------ */
-/* Lifecycle model                                                     */
-/* ------------------------------------------------------------------ */
-
 type BootState = "OFFLINE" | "BOOTSTRAPPING" | "LOCAL_DISCOVERY" | "GLOBAL_DHT_JOIN";
 type LogLevel = "info" | "ok" | "warn";
 
 interface StageLog {
   text: string;
   level: LogLevel;
-  /** ms to wait *before* emitting this line */
   wait: number;
 }
 
@@ -89,7 +84,7 @@ const STAGES: BootStage[] = [
     detail: "Bootstrapping into the global XOR-keyed routing table.",
     icon: Server,
     logs: [
-      { text: "kad routing table init: 256 buckets, k=8, α=3, D=20", level: "info", wait: 320 },
+      { text: "kad routing table init: 256 buckets, k=8, alpha=3, D=20", level: "info", wait: 320 },
       { text: "kad bootstrap /dnsaddr/bootstrap.libp2p.io resolved -> 4 relay contacts", level: "info", wait: 360 },
       { text: "kad FIND_NODE(self) converged in 3 hops, merged 8 closest contacts", level: "ok", wait: 400 },
       { text: "kad sybil guard active: admission requires PoW >= 2^16 hash-ops", level: "warn", wait: 320 },
@@ -113,10 +108,6 @@ const formatUptime = (totalSeconds: number): string => {
   const s = totalSeconds % 60;
   return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
 };
-
-/* ------------------------------------------------------------------ */
-/* Component                                                           */
-/* ------------------------------------------------------------------ */
 
 export default function NodeBootstrapper() {
   const [stageIndex, setStageIndex] = useState<number>(0);
@@ -147,7 +138,7 @@ export default function NodeBootstrapper() {
       if (!alive()) return;
       setStageIndex(i);
       const stage = STAGES[i];
-      push("info", `─── [${stage.state}] ${stage.title} ───`);
+      push("info", `--- [${stage.state}] ${stage.title} ---`);
 
       for (const line of stage.logs) {
         await sleep(line.wait);
@@ -162,17 +153,14 @@ export default function NodeBootstrapper() {
     setPhase("done");
   }, []);
 
-  /* Auto-boot on mount (deferred one tick so state updates stay out of the
-     synchronous effect body). */
   useEffect(() => {
     const bootTimer = window.setTimeout(() => void runBoot(), 0);
     return () => {
       window.clearTimeout(bootTimer);
-      runIdRef.current += 1; // cancel any in-flight sequence
+      runIdRef.current += 1;
     };
   }, [runBoot]);
 
-  /* Uptime ticker. */
   useEffect(() => {
     if (phase === "idle") return;
     const timer = window.setInterval(() => setUptime((v) => v + 1), 1000);
@@ -184,22 +172,22 @@ export default function NodeBootstrapper() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8">
-      {/* ---------------- Lifecycle stepper ---------------- */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+      {/* Lifecycle stepper */}
+      <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-400">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-brand-400">
             <Power className="w-5 h-5" /> Node Lifecycle
           </h2>
           <span
             className={`font-mono text-[10px] font-bold px-2 py-1 rounded border ${
               phase === "done"
-                ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400"
+                ? "bg-success-500/10 border-success-500/40 text-success-400"
                 : phase === "running"
-                  ? "bg-amber-500/10 border-amber-500/40 text-amber-400 animate-pulse"
-                  : "bg-slate-950 border-slate-800 text-slate-500"
+                  ? "bg-warning-500/10 border-warning-500/40 text-warning-400 animate-pulse"
+                  : "bg-slate-950/60 border-slate-800 text-slate-500"
             }`}
           >
-            {phase === "done" ? "NODE ONLINE" : phase === "running" ? "BOOTING…" : "IDLE"}
+            {phase === "done" ? "NODE ONLINE" : phase === "running" ? "BOOTING..." : "IDLE"}
           </span>
         </div>
 
@@ -216,10 +204,10 @@ export default function NodeBootstrapper() {
                   <div
                     className={`w-11 h-11 shrink-0 rounded-lg border flex items-center justify-center transition-all duration-300 ${
                       isDone
-                        ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400"
+                        ? "bg-brand-500/10 border-brand-500/50 text-brand-400"
                         : isActive
-                          ? "bg-amber-500/10 border-amber-500/60 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
-                          : "bg-slate-950 border-slate-800 text-slate-600"
+                          ? "bg-accent-500/10 border-accent-500/60 text-accent-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                          : "bg-slate-950/60 border-slate-800 text-slate-600"
                     }`}
                   >
                     {isDone ? (
@@ -233,7 +221,7 @@ export default function NodeBootstrapper() {
                   {i < STAGES.length - 1 && (
                     <div
                       className={`w-px flex-1 my-1 transition-colors duration-500 ${
-                        isDone ? "bg-emerald-500/50" : "bg-slate-800"
+                        isDone ? "bg-brand-500/50" : "bg-slate-800"
                       }`}
                     />
                   )}
@@ -243,7 +231,7 @@ export default function NodeBootstrapper() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={`font-mono text-sm font-bold tracking-tight ${
-                        isDone ? "text-emerald-300" : isActive ? "text-amber-300" : "text-slate-600"
+                        isDone ? "text-brand-300" : isActive ? "text-accent-300" : "text-slate-600"
                       }`}
                     >
                       [{stage.state}]
@@ -251,9 +239,9 @@ export default function NodeBootstrapper() {
                     <span
                       className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                         isDone
-                          ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5"
+                          ? "border-brand-500/30 text-brand-500 bg-brand-500/5"
                           : isActive
-                            ? "border-amber-500/30 text-amber-500 bg-amber-500/5"
+                            ? "border-accent-500/30 text-accent-500 bg-accent-500/5"
                             : "border-slate-800 text-slate-600"
                       }`}
                     >
@@ -268,20 +256,19 @@ export default function NodeBootstrapper() {
           })}
         </ol>
 
-        {/* Boot progress */}
         <div className="mt-2">
           <div className="flex justify-between text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-1.5">
             <span>Boot Progress</span>
-            <span className={progressPct === 100 ? "text-emerald-400" : "text-amber-400"}>
+            <span className={progressPct === 100 ? "text-success-400" : "text-accent-400"}>
               {progressPct}%
             </span>
           </div>
-          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+          <div className="h-1.5 bg-slate-950/60 rounded-full overflow-hidden border border-slate-800">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 progressPct === 100
-                  ? "bg-emerald-500"
-                  : "bg-gradient-to-r from-amber-600 to-amber-400"
+                  ? "bg-success-500"
+                  : "bg-gradient-to-r from-accent-600 to-accent-400"
               }`}
               style={{ width: `${progressPct}%` }}
             />
@@ -291,28 +278,28 @@ export default function NodeBootstrapper() {
         <button
           onClick={() => void runBoot()}
           disabled={phase === "running"}
-          className="w-full mt-5 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2"
+          className="w-full mt-5 py-3 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2"
         >
           <RefreshCw className={`w-4 h-4 ${phase === "running" ? "animate-spin" : ""}`} />
           Re-Run Boot Sequence
         </button>
       </div>
 
-      {/* ---------------- Boot terminal ---------------- */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col">
+      {/* Boot terminal */}
+      <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-sky-400">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-accent-400">
             <Terminal className="w-5 h-5" /> Bootstrap Console
           </h2>
-          <span className="font-mono text-[10px] text-slate-500 border border-slate-800 bg-slate-950 px-2 py-1 rounded">
-            stdout · stderr · swarm events
+          <span className="font-mono text-[10px] text-slate-500 border border-slate-800 bg-slate-950/60 px-2 py-1 rounded">
+            stdout - stderr - swarm events
           </span>
         </div>
 
-        <div className="bg-slate-950 rounded-lg p-4 flex-1 min-h-[340px] max-h-[340px] overflow-y-auto font-mono text-xs space-y-1.5 border border-slate-800 custom-scrollbar">
+        <div className="bg-slate-950/60 rounded-lg p-4 flex-1 min-h-[340px] max-h-[340px] overflow-y-auto font-mono text-xs space-y-1.5 border border-slate-800 custom-scrollbar">
           {logs.length === 0 ? (
             <div className="text-slate-600 italic">
-              [OFFLINE] awaiting operator start signal…
+              [OFFLINE] awaiting operator start signal...
             </div>
           ) : (
             logs.map((log) => (
@@ -321,9 +308,9 @@ export default function NodeBootstrapper() {
                 <span
                   className={
                     log.level === "ok"
-                      ? "text-emerald-400"
+                      ? "text-success-400"
                       : log.level === "warn"
-                        ? "text-amber-400"
+                        ? "text-warning-400"
                         : "text-slate-400"
                   }
                 >
@@ -333,13 +320,12 @@ export default function NodeBootstrapper() {
             ))
           )}
           {phase === "running" && (
-            <div className="text-emerald-500 animate-pulse">▊</div>
+            <div className="text-brand-500 animate-pulse">|</div>
           )}
         </div>
 
-        {/* Runtime metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
               <Server className="w-3 h-3" /> Uptime
             </div>
@@ -347,29 +333,29 @@ export default function NodeBootstrapper() {
               {formatUptime(uptime)}
             </div>
           </div>
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 min-w-0">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 min-w-0">
             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
               <KeyRound className="w-3 h-3" /> PeerId
             </div>
             <div
-              className="text-xs font-mono font-bold text-emerald-400 mt-1.5 truncate"
+              className="text-xs font-mono font-bold text-brand-400 mt-1.5 truncate"
               title={LOCAL_PEER_ID}
             >
-              {LOCAL_PEER_ID.slice(0, 10)}…{LOCAL_PEER_ID.slice(-6)}
+              {LOCAL_PEER_ID.slice(0, 10)}...{LOCAL_PEER_ID.slice(-6)}
             </div>
           </div>
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
               <Cpu className="w-3 h-3" /> Keypair
             </div>
             <div className="text-sm font-mono font-bold text-slate-200 mt-1">ed25519</div>
           </div>
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
               <Network className="w-3 h-3" /> Listeners
             </div>
             <div className="text-sm font-mono font-bold text-slate-200 mt-1">
-              {phase === "done" ? "quic-v1 · ws" : "—"}
+              {phase === "done" ? "quic-v1 / ws" : "—"}
             </div>
           </div>
         </div>

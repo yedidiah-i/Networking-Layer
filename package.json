@@ -1,0 +1,12 @@
+{
+  "name": "p2p-transport-academy-root",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd p2p-transport-academy && npm run dev",
+    "build": "cd p2p-transport-academy && npm run build",
+    "start": "cd p2p-transport-academy && npm run start",
+    "lint": "cd p2p-transport-academy && npm run lint",
+    "install": "cd p2p-transport-academy && npm install"
+  }
+}

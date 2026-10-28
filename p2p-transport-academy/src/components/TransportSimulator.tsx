@@ -19,7 +19,6 @@ export default function TransportSimulator() {
     setLogs((prev) => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 15)]);
   };
 
-  // REAL LOOKUP ENGINE: Replaces the fake discovery with a live network request
   const fetchRealAddressAndPunch = async () => {
     setIsSimulating(true);
     setLogs([]);
@@ -29,27 +28,25 @@ export default function TransportSimulator() {
       addLog("Querying Cloudflare edge network to fetch your authentic public IP address...");
       const res = await fetch('/api/ip');
       const data = await res.json();
-      
-      // Update our real state payload
+
       setPublicIp(data.ip);
       setIpProvider(data.provider);
-      addLog(`⚡ Success! Your true Public IP was resolved via ${data.provider} -> ${data.ip}`);
+      addLog(`Success! Your true Public IP was resolved via ${data.provider} -> ${data.ip}`);
     } catch (err) {
       setPublicIp('Discovery Failed');
-      addLog("❌ Error: Failed to resolve your public IP address from the edge network container.");
+      addLog("Error: Failed to resolve your public IP address from the edge network container.");
     }
 
-    // Hole Punching logic execution flow
     await new Promise((r) => setTimeout(r, 400));
     addLog(`Evaluating boundary packet traversal pathways using ${protocol}...`);
-    
+
     if (natType === 'Symmetric') {
-      addLog("⚠️ Warning: Your firewall behavior matches a strict Symmetric profile.");
+      addLog("Warning: Your firewall behavior matches a strict Symmetric profile.");
       addLog("Routing a direct peer-to-peer connection is restricted. Tunneling traffic over a TURN relay.");
       setMetrics({ latency: 132, overhead: 32, speed: 45 });
     } else {
-      addLog("⚡ Success: Dynamic NAT translation table hole verified by remote handshake confirmation!");
-      addLog(`🚀 Upgrading raw unblocked stream socket directly into your validated ${protocol} stream pipeline.`);
+      addLog("Success: Dynamic NAT translation table hole verified by remote handshake confirmation!");
+      addLog(`Upgrading raw unblocked stream socket directly into your validated ${protocol} stream pipeline.`);
       setMetrics({
         latency: protocol === 'QUIC' ? 14 : protocol === 'TCP' ? 38 : 45,
         overhead: protocol === 'QUIC' ? 4 : protocol === 'TCP' ? 24 : 16,
@@ -65,27 +62,26 @@ export default function TransportSimulator() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
+
       {/* Configuration Controls */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
-        <h2 className="text-xl font-bold flex items-center gap-2 mb-6 text-emerald-400">
+      <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 shadow-xl">
+        <h2 className="text-xl font-bold flex items-center gap-2 mb-6 text-brand-400">
           <Cpu className="w-5 h-5" /> Node Settings
         </h2>
 
         {/* Real Address Box */}
-        <div className="mb-6 bg-slate-950 border border-slate-800 rounded-lg p-4 group relative">
+        <div className="mb-6 bg-slate-950/60 border border-slate-800 rounded-lg p-4 group relative">
           <div className="flex items-center justify-between mb-1">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Your True Public IP Address</div>
             <div className="text-slate-500 hover:text-slate-300 cursor-help transition-colors">
               <HelpCircle className="w-4 h-4" />
-              {/* Beginner Friendly Tooltip */}
               <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 text-slate-200 text-[11px] p-2 rounded shadow-xl hidden group-hover:block border border-slate-700 z-50 normal-case leading-relaxed font-sans">
-                This is your internet router's public gateway address on the open web, discovered dynamically by Cloudflare's servers. Other computers use this value to direct peer-to-peer traffic right back to you.
+                This is your internet router&apos;s public gateway address on the open web, discovered dynamically by Cloudflare&apos;s servers. Other computers use this value to direct peer-to-peer traffic right back to you.
               </span>
             </div>
           </div>
-          <div className="font-mono text-base font-bold text-emerald-400 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-sky-400" /> {publicIp}
+          <div className="font-mono text-base font-bold text-brand-400 flex items-center gap-2">
+            <Globe className="w-4 h-4 text-accent-400" /> {publicIp}
           </div>
           {ipProvider && <div className="text-[10px] text-slate-600 mt-1 font-mono">Source: {ipProvider}</div>}
         </div>
@@ -100,8 +96,8 @@ export default function TransportSimulator() {
                 onClick={() => setProtocol(p)}
                 className={`py-2 px-3 rounded-lg font-medium text-xs border transition-all ${
                   protocol === p
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-brand-500/10 border-brand-500 text-brand-400'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
                 {p}
@@ -118,22 +114,22 @@ export default function TransportSimulator() {
               onClick={() => setNatType('FullCone')}
               className={`p-3 rounded-lg text-left border transition-all ${
                 natType === 'FullCone'
-                  ? 'bg-blue-500/10 border-blue-500 text-blue-400'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                  ? 'bg-success-500/10 border-success-500 text-success-400'
+                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
               }`}
             >
-              <div className="font-bold text-sm">Open/Full Cone</div>
+              <div className="font-bold text-sm">Open / Full Cone</div>
               <div className="text-[10px] text-slate-500 mt-1">Allows incoming peer connections easily.</div>
             </button>
             <button
               onClick={() => setNatType('Symmetric')}
               className={`p-3 rounded-lg text-left border transition-all ${
                 natType === 'Symmetric'
-                  ? 'bg-rose-500/10 border-rose-500 text-rose-400'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                  ? 'bg-error-500/10 border-error-500 text-error-400'
+                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
               }`}
             >
-              <div className="font-bold text-sm">Strict/Symmetric</div>
+              <div className="font-bold text-sm">Strict / Symmetric</div>
               <div className="text-[10px] text-slate-500 mt-1">Blocks direct incoming traffic routes completely.</div>
             </button>
           </div>
@@ -142,20 +138,20 @@ export default function TransportSimulator() {
         <button
           onClick={fetchRealAddressAndPunch}
           disabled={isSimulating}
-          className="w-full mt-2 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2"
+          className="w-full mt-2 py-3 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2"
         >
           <RefreshCw className={`w-4 h-4 ${isSimulating ? 'animate-spin' : ''}`} /> Refresh Connection Mapping
         </button>
       </div>
 
       {/* Real-time Diagnostics Logs */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl lg:col-span-2 flex flex-col h-[420px]">
-        <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-sky-400">
+      <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 shadow-xl lg:col-span-2 flex flex-col h-[420px]">
+        <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-accent-400">
           <Activity className="w-5 h-5" /> Live Protocol Diagnostics Tracker
         </h2>
-        <div className="bg-slate-950 rounded-lg p-4 flex-1 overflow-y-auto font-mono text-xs text-slate-300 space-y-2 border border-slate-800 custom-scrollbar">
+        <div className="bg-slate-950/60 rounded-lg p-4 flex-1 overflow-y-auto font-mono text-xs text-slate-300 space-y-2 border border-slate-800 custom-scrollbar">
           {logs.map((log, idx) => (
-            <div key={idx} className={log.includes('❌') || log.includes('⚠️') ? 'text-rose-400' : log.includes('⚡') || log.includes('🚀') ? 'text-emerald-400' : 'text-slate-300'}>
+            <div key={idx} className={log.includes('Error') || log.includes('Warning') ? 'text-error-400' : log.includes('Success') || log.includes('Upgrading') ? 'text-success-400' : 'text-slate-300'}>
               {log}
             </div>
           ))}
@@ -163,15 +159,15 @@ export default function TransportSimulator() {
 
         {/* Lower Metrics Section */}
         <div className="grid grid-cols-3 gap-4 mt-4">
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-center">
             <div className="text-[10px] text-slate-500 font-bold uppercase">Real-world Latency</div>
             <div className="text-lg font-mono font-bold text-slate-200 mt-1">{metrics.latency} ms</div>
           </div>
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-center">
             <div className="text-[10px] text-slate-500 font-bold uppercase">Wire Overhead</div>
             <div className="text-lg font-mono font-bold text-slate-200 mt-1">{metrics.overhead} B</div>
           </div>
-          <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-center">
             <div className="text-[10px] text-slate-500 font-bold uppercase">Estimated Speed</div>
             <div className="text-lg font-mono font-bold text-slate-200 mt-1">{metrics.speed} Mbps</div>
           </div>

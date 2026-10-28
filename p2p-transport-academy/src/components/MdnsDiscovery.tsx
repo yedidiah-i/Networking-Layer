@@ -12,20 +12,13 @@ import {
   Wifi,
 } from "lucide-react";
 
-/* ------------------------------------------------------------------ */
-/* Simulated Link-Local network space (RFC 6762 mDNS)                  */
-/* ------------------------------------------------------------------ */
-
 interface ServiceRecord {
-  /** e.g. "_p2p-discovery._udp.local" */
   name: string;
   port: number;
-  /** TXT attribute bag advertised alongside the SRV record */
   attrs: string[];
 }
 
 interface LanHost {
-  /** full 256-bit identity, rendered as a hex slice in the UI */
   id: string;
   ip: string;
   mac: string;
@@ -139,17 +132,13 @@ const clock = (): string =>
   "." +
   String(new Date().getMilliseconds()).padStart(3, "0");
 
-const hexSlice = (hex: string): string => `${hex.slice(0, 8)}…${hex.slice(-6)}`;
+const hexSlice = (hex: string): string => `${hex.slice(0, 8)}...${hex.slice(-6)}`;
 
 const KIND_STYLE: Record<PacketKind, string> = {
-  tx: "text-sky-400",
-  rx: "text-emerald-400",
+  tx: "text-accent-400",
+  rx: "text-success-400",
   sys: "text-slate-500",
 };
-
-/* ------------------------------------------------------------------ */
-/* Component                                                           */
-/* ------------------------------------------------------------------ */
 
 export default function MdnsDiscovery() {
   const [scanning, setScanning] = useState<boolean>(false);
@@ -179,22 +168,13 @@ export default function MdnsDiscovery() {
       setLogs((prev) => [...prev.slice(-40), entry]);
     };
 
-    push(
-      "sys",
-      `joining multicast ${MULTICAST_GROUP}:${MULTICAST_PORT} (iface en0, IP_MULTICAST_TTL=255)`,
-    );
+    push("sys", `joining multicast ${MULTICAST_GROUP}:${MULTICAST_PORT} (iface en0, IP_MULTICAST_TTL=255)`);
     await sleep(280);
-    push(
-      "tx",
-      `→ QUERY   ${MULTICAST_GROUP}:${MULTICAST_PORT}  PTR ${SERVICE_TYPE}  (questions=1, id=0x8f31)`,
-    );
+    push("tx", `-> QUERY   ${MULTICAST_GROUP}:${MULTICAST_PORT}  PTR ${SERVICE_TYPE}  (questions=1, id=0x8f31)`);
     sent += 1;
     setQueries((q) => q + 1);
     await sleep(320);
-    push(
-      "tx",
-      `→ QUERY   ${MULTICAST_GROUP}:${MULTICAST_PORT}  ANY ${SERVICE_TYPE}  (retransmit #1, known-answer suppression on)`,
-    );
+    push("tx", `-> QUERY   ${MULTICAST_GROUP}:${MULTICAST_PORT}  ANY ${SERVICE_TYPE}  (retransmit #1, known-answer suppression on)`);
     sent += 1;
     setQueries((q) => q + 1);
 
@@ -202,23 +182,17 @@ export default function MdnsDiscovery() {
       await sleep(240 + host.rtt * 60);
       if (!alive()) return;
       setDiscovered((prev) => [...prev, host]);
-      push(
-        "rx",
-        `← RESPONSE ${host.ip}:${MULTICAST_PORT}  A ${host.ip} / SRV ${host.services[0].name} :${host.services[0].port}  rtt=${host.rtt.toFixed(1)}ms`,
-      );
+      push("rx", `<- RESPONSE ${host.ip}:${MULTICAST_PORT}  A ${host.ip} / SRV ${host.services[0].name} :${host.services[0].port}  rtt=${host.rtt.toFixed(1)}ms`);
     }
 
     await sleep(260);
     if (!alive()) return;
-    push(
-      "sys",
-      `cache settled: ${REMOTE_HOSTS.length} peer records, TTL 4500s, GC scheduled (${sent + REMOTE_HOSTS.length} packets captured)`,
-    );
+    push("sys", `cache settled: ${REMOTE_HOSTS.length} peer records, TTL 4500s, GC scheduled (${sent + REMOTE_HOSTS.length} packets captured)`);
     setScanning(false);
   }, []);
 
   const flushCache = useCallback((): void => {
-    runIdRef.current += 1; // abort any in-flight sweep
+    runIdRef.current += 1;
     setScanning(false);
     setDiscovered([]);
     setLogs([]);
@@ -226,8 +200,6 @@ export default function MdnsDiscovery() {
     setUptimeSec(4500);
   }, []);
 
-  /* Auto-discover on mount (deferred one tick so state updates stay out of
-     the synchronous effect body). */
   useEffect(() => {
     const sweepTimer = window.setTimeout(() => void runQuery(), 0);
     return () => {
@@ -236,7 +208,6 @@ export default function MdnsDiscovery() {
     };
   }, [runQuery]);
 
-  /* Cache TTL countdown. */
   useEffect(() => {
     const timer = window.setInterval(() => setUptimeSec((v) => (v <= 0 ? 4500 : v - 1)), 1000);
     return () => window.clearInterval(timer);
@@ -246,67 +217,57 @@ export default function MdnsDiscovery() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* ---------------- Network space ---------------- */}
-      <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+      {/* Network space */}
+      <div className="lg:col-span-2 bg-slate-900/40 border border-slate-800 rounded-xl p-6 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-emerald-400">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-brand-400">
             <Radio className="w-5 h-5" /> mDNS Local Network Space
           </h2>
           <div className="flex items-center gap-2 font-mono text-[10px]">
-            <span className="bg-sky-500/10 border border-sky-500/30 text-sky-400 px-2 py-1 rounded-full font-semibold">
+            <span className="bg-accent-500/10 border border-accent-500/30 text-accent-400 px-2 py-1 rounded-full font-semibold">
               {MULTICAST_GROUP}:{MULTICAST_PORT}
             </span>
-            <span className="bg-slate-950 border border-slate-800 text-slate-500 px-2 py-1 rounded-full">
+            <span className="bg-slate-950/60 border border-slate-800 text-slate-500 px-2 py-1 rounded-full">
               {SERVICE_TYPE}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {/* Local node with broadcast rings */}
-          <div className="relative overflow-hidden rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-4">
+          {/* Local node */}
+          <div className="relative overflow-hidden rounded-lg border border-brand-500/40 bg-brand-500/5 p-4">
             {scanning && (
               <>
-                <span className="pointer-events-none absolute inset-0 m-auto w-24 h-24 rounded-full border border-emerald-400/60 animate-ping" />
-                <span
-                  className="pointer-events-none absolute inset-0 m-auto w-24 h-24 rounded-full border border-emerald-400/40 animate-ping [animation-delay:400ms]"
-                />
-                <span
-                  className="pointer-events-none absolute inset-0 m-auto w-24 h-24 rounded-full border border-emerald-400/20 animate-ping [animation-delay:800ms]"
-                />
+                <span className="pointer-events-none absolute inset-0 m-auto w-24 h-24 rounded-full border border-brand-400/60 animate-ping" />
+                <span className="pointer-events-none absolute inset-0 m-auto w-24 h-24 rounded-full border border-brand-400/40 animate-ping [animation-delay:400ms]" />
+                <span className="pointer-events-none absolute inset-0 m-auto w-24 h-24 rounded-full border border-brand-400/20 animate-ping [animation-delay:800ms]" />
               </>
             )}
             <div className="relative">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-emerald-300">{LOCAL_HOST.ip}</span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+                <span className="font-mono text-xs font-bold text-brand-300">{LOCAL_HOST.ip}</span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-500/20 border border-brand-500/40 text-brand-300">
                   SELF
                 </span>
               </div>
               <div className="text-[10px] text-slate-500 font-mono mt-1">{LOCAL_HOST.mac}</div>
-              <div
-                className="text-[10px] text-slate-400 font-mono mt-2 truncate"
-                title={LOCAL_HOST.id}
-              >
+              <div className="text-[10px] text-slate-400 font-mono mt-2 truncate" title={LOCAL_HOST.id}>
                 {hexSlice(LOCAL_HOST.id)}
               </div>
               <div className="flex flex-wrap gap-1 mt-3">
                 {LOCAL_HOST.services.map((svc) => (
-                  <span
-                    key={svc.name}
-                    className="text-[9px] font-mono bg-slate-950 border border-emerald-500/30 text-emerald-400 px-1.5 py-0.5 rounded"
-                  >
+                  <span key={svc.name} className="text-[9px] font-mono bg-slate-950/60 border border-brand-500/30 text-brand-400 px-1.5 py-0.5 rounded">
                     {svc.name.split("._")[0]}:{svc.port}
                   </span>
                 ))}
               </div>
-              <div className="mt-3 pt-3 border-t border-emerald-500/20 text-[10px] font-mono text-emerald-500/80">
-                {scanning ? "broadcasting query…" : "multicast socket idle"}
+              <div className="mt-3 pt-3 border-t border-brand-500/20 text-[10px] font-mono text-brand-500/80">
+                {scanning ? "broadcasting query..." : "multicast socket idle"}
               </div>
             </div>
           </div>
 
-          {/* Remote LAN hosts */}
+          {/* Remote hosts */}
           {REMOTE_HOSTS.map((host) => {
             const found = isFound(host.id);
             return (
@@ -314,42 +275,31 @@ export default function MdnsDiscovery() {
                 key={host.id}
                 className={`rounded-lg border p-4 transition-all duration-500 ${
                   found
-                    ? "border-emerald-500/40 bg-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
-                    : "border-slate-800 bg-slate-950/60 opacity-45"
+                    ? "border-brand-500/40 bg-slate-950/60 shadow-[0_0_20px_rgba(59,130,246,0.08)]"
+                    : "border-slate-800 bg-slate-950/40 opacity-45"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span
-                    className={`font-mono text-xs font-bold ${found ? "text-slate-200" : "text-slate-500"}`}
-                  >
+                  <span className={`font-mono text-xs font-bold ${found ? "text-slate-200" : "text-slate-500"}`}>
                     {host.ip}
                   </span>
-                  <span
-                    className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                      found
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                        : "border-slate-800 text-slate-600"
-                    }`}
-                  >
+                  <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                    found ? "border-success-500/40 bg-success-500/10 text-success-400" : "border-slate-800 text-slate-600"
+                  }`}>
                     {found ? "RESPONDED" : "SILENT"}
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-600 font-mono mt-1">
-                  {host.alias} · {host.mac}
+                  {host.alias} - {host.mac}
                 </div>
                 <div className="text-[10px] text-slate-400 font-mono mt-2 truncate" title={host.id}>
                   {hexSlice(host.id)}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-3">
                   {host.services.map((svc) => (
-                    <span
-                      key={svc.name}
-                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
-                        found
-                          ? "border-slate-800 bg-slate-900 text-slate-400"
-                          : "border-slate-900 text-slate-700"
-                      }`}
-                    >
+                    <span key={svc.name} className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                      found ? "border-slate-800 bg-slate-900 text-slate-400" : "border-slate-900 text-slate-700"
+                    }`}>
                       {svc.name.split("._")[0]}:{svc.port}
                     </span>
                   ))}
@@ -364,42 +314,41 @@ export default function MdnsDiscovery() {
           <button
             onClick={() => void runQuery()}
             disabled={scanning}
-            className="py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold text-sm rounded-lg transition-all flex items-center gap-2"
+            className="py-2.5 px-4 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold text-sm rounded-lg transition-all flex items-center gap-2"
           >
             <Send className={`w-4 h-4 ${scanning ? "animate-pulse" : ""}`} />
-            {scanning ? "Sweeping…" : "Broadcast mDNS Query"}
+            {scanning ? "Sweeping..." : "Broadcast mDNS Query"}
           </button>
           <button
             onClick={flushCache}
             disabled={scanning}
-            className="py-2.5 px-4 bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-400 font-bold text-sm rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+            className="py-2.5 px-4 bg-slate-950/60 hover:bg-slate-900 border border-slate-800 text-slate-400 font-bold text-sm rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
           >
             <Trash2 className="w-4 h-4" /> Flush Cache
           </button>
           <div className="ml-auto flex items-center gap-4 font-mono text-[10px] text-slate-500">
             <span className="flex items-center gap-1">
-              <Send className="w-3 h-3 text-sky-400" /> {queries} queries
+              <Send className="w-3 h-3 text-accent-400" /> {queries} queries
             </span>
             <span className="flex items-center gap-1">
-              <Wifi className="w-3 h-3 text-emerald-400" /> {discovered.length}/{REMOTE_HOSTS.length}{" "}
-              responses
+              <Wifi className="w-3 h-3 text-success-400" /> {discovered.length}/{REMOTE_HOSTS.length} responses
             </span>
             <span className="flex items-center gap-1">
-              <Timer className="w-3 h-3 text-amber-400" /> TTL {uptimeSec}s
+              <Timer className="w-3 h-3 text-warning-400" /> TTL {uptimeSec}s
             </span>
           </div>
         </div>
       </div>
 
-      {/* ---------------- Packet console + listings ---------------- */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col">
-        <h2 className="text-xl font-bold flex items-center gap-2 text-sky-400 mb-4">
+      {/* Packet console */}
+      <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col">
+        <h2 className="text-xl font-bold flex items-center gap-2 text-accent-400 mb-4">
           <ScanSearch className="w-5 h-5" /> Multicast Packet Trace
         </h2>
 
-        <div className="bg-slate-950 rounded-lg p-3 font-mono text-[11px] space-y-1.5 border border-slate-800 h-[220px] overflow-y-auto custom-scrollbar">
+        <div className="bg-slate-950/60 rounded-lg p-3 font-mono text-[11px] space-y-1.5 border border-slate-800 h-[220px] overflow-y-auto custom-scrollbar">
           {logs.length === 0 ? (
-            <div className="text-slate-600 italic">no traffic captured…</div>
+            <div className="text-slate-600 italic">no traffic captured...</div>
           ) : (
             logs.map((log) => (
               <div key={log.id} className="flex gap-2 leading-relaxed">
@@ -410,12 +359,11 @@ export default function MdnsDiscovery() {
           )}
         </div>
 
-        {/* Discovered peer listings */}
         <div className="flex items-center gap-2 mt-5 mb-3">
           <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <Layers className="w-4 h-4 text-emerald-400" /> Discovered Local Peers
+            <Layers className="w-4 h-4 text-brand-400" /> Discovered Local Peers
           </h3>
-          <span className="text-[10px] font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-1.5 py-0.5 rounded-full">
+          <span className="text-[10px] font-mono bg-brand-500/10 border border-brand-500/30 text-brand-400 px-1.5 py-0.5 rounded-full">
             {discovered.length}
           </span>
         </div>
@@ -423,27 +371,20 @@ export default function MdnsDiscovery() {
         <div className="space-y-2 overflow-y-auto max-h-[240px] custom-scrollbar pr-1">
           {discovered.length === 0 ? (
             <div className="text-xs text-slate-600 italic font-mono border border-dashed border-slate-800 rounded-lg p-4 text-center">
-              cache empty — waiting for RESPONSE packets
+              cache empty - waiting for RESPONSE packets
             </div>
           ) : (
             discovered.map((host) => (
-              <div
-                key={host.id}
-                className="bg-slate-950 border border-slate-800 hover:border-emerald-500/40 rounded-lg p-3 transition-colors"
-              >
+              <div key={host.id} className="bg-slate-950/60 border border-slate-800 hover:border-brand-500/40 rounded-lg p-3 transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs font-bold text-slate-200" title={host.id}>
                     {hexSlice(host.id)}
                   </span>
-                  <span className="font-mono text-[11px] text-emerald-400">{host.ip}</span>
+                  <span className="font-mono text-[11px] text-brand-400">{host.ip}</span>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {host.services.map((svc) => (
-                    <span
-                      key={svc.name}
-                      className="text-[9px] font-mono bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded"
-                      title={svc.attrs.join(" · ")}
-                    >
+                    <span key={svc.name} className="text-[9px] font-mono bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded" title={svc.attrs.join(" - ")}>
                       {svc.name} :{svc.port}
                     </span>
                   ))}
@@ -460,15 +401,15 @@ export default function MdnsDiscovery() {
         </div>
 
         <div className="mt-4 pt-4 border-t border-slate-800 grid grid-cols-3 gap-2 text-center">
-          <div className="bg-slate-950 rounded-lg border border-slate-800 p-2">
+          <div className="bg-slate-950/60 rounded-lg border border-slate-800 p-2">
             <div className="text-[9px] text-slate-500 font-bold uppercase">Group</div>
             <div className="text-[11px] font-mono font-bold text-slate-300 mt-0.5">IPv4 mcast</div>
           </div>
-          <div className="bg-slate-950 rounded-lg border border-slate-800 p-2">
+          <div className="bg-slate-950/60 rounded-lg border border-slate-800 p-2">
             <div className="text-[9px] text-slate-500 font-bold uppercase">Scope</div>
             <div className="text-[11px] font-mono font-bold text-slate-300 mt-0.5">Link-Local</div>
           </div>
-          <div className="bg-slate-950 rounded-lg border border-slate-800 p-2">
+          <div className="bg-slate-950/60 rounded-lg border border-slate-800 p-2">
             <div className="text-[9px] text-slate-500 font-bold uppercase">Records</div>
             <div className="text-[11px] font-mono font-bold text-slate-300 mt-0.5">
               {discovered.reduce((n, h) => n + h.services.length, 0)}
