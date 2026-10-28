@@ -1,6 +1,6 @@
 // networking_layer\src\connection_handling\nat_traversal.rs
 
-use std::net::SocketAddr;
+use std::net::{Ipv4Addr, SocketAddr};
 use std::time::Duration;
 use tokio::net::UdpSocket;
 use tokio::time::timeout;
@@ -70,6 +70,30 @@ impl NatTraversal {
         })
         .await
         .map_err(|_| "STUN server response timed out".to_string())?
+
+    }
+    pub async fn broadcast_local_presence(local_port: u16, peer_id: [u8; 32]) -> Result<(), String> {
+        let multicast_addr = Ipv4Addr::new(224, 0, 0, 251); // mDNS multicast space
+        let bind_addr = SocketAddr::new(std::net::IpAddr::V4(Ipv4Addr::UNSPECIFIED), 5353);
+        
+        let socket = UdpSocket::bind(bind_addr).await
+            .map_err(|e| format!("Failed binding multicast discovery receiver: {}", e))?;
+            
+        // Explicitly join the local area interface multicast group container
+        socket.join_multicast_v4(multicast_addr, Ipv4Addr::UNSPECIFIED)
+            .map_err(|e| format!("Failed to join local multicast ring: {}", e))?;
+
+        // Construct discovery signal payload containing our local node attributes
+        let mut discovery_packet = Vec::with_capacity(34);
+        discovery_packet.extend_from_slice(b"P2P_DISCOVER");
+        discovery_packet.extend_from_slice(&peer_id);
+        
+        // Fire broadcast query frame across local routers
+        let target_broadcast = SocketAddr::new(std::net::IpAddr::V4(multicast_addr), 5353);
+        socket.send_to(&discovery_packet, target_broadcast).await
+            .map_err(|e| format!("Failed to emit discovery beacon frame: {}", e))?;
+            
+        Ok(())
     }
 
     /// HOLE PUNCHING SPEED: Simultaneously blasts boundary synchronization tokens 

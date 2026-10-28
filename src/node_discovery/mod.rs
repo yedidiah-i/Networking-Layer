@@ -62,6 +62,7 @@ impl KademliaRoutingTable {
             }
         } 
 
+
         let oldest_peer = self.buckets[bucket_idx][0];
         let is_alive = self.ping_peer(&oldest_peer).await;
 
@@ -74,7 +75,18 @@ impl KademliaRoutingTable {
             bucket.push(node);
         }
     }
-
+    pub fn calculate_xor_distance_bucket(&self, target_id: &PeerId) -> usize {
+        // Iterate through all 32 bytes to find the leading bit difference
+        for i in 0..32 {
+            let xor_byte = self.local_id[i] ^ target_id[i];
+            if xor_byte != 0 {
+                // Find the exact bit-level offset to accurately allocate to one of our 256 buckets
+                let leading_zeros = xor_byte.leading_zeros() as usize;
+                return (i * 8) + leading_zeros;
+            }
+        }
+        0 // Returns 0 if IDs are mathematically identical (self lookup)
+    }
     async fn ping_peer(&self, _peer_id: &PeerRoutingNode) -> bool {
         true
     }
